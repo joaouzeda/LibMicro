@@ -1,0 +1,13 @@
+#Projeto de biblioteca para microcontroladores  
+
+#Conteudo
+    Serial interface with 7hc595
+    lcd 16x2 with backlight 
+    auxiliarty led
+    4 buttons 
+
+#Infos
+    compiler: VsCode 1.88.1
+    MCU: ESP32
+    Author: João  G. Uzêda
+    date: 2024, March
