@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------------------------
 
-        IHMWR V0.1 file.h
+        IHMWR V0.2 file.h
         
         Serial interface with 7hc595
         lcd 16x2 with backlight 
@@ -140,5 +140,152 @@ void send_nibble(unsigned char nib, char rsel, char bli, char led){
         shift_reg(sbyte|~EN);
         __us(100);
 }
+
+// --------------------------------------------------------------------------------------
+// -----Write position-------
+// escreve caractere na linha e coluna 
+void slcd_wr_po(unsigned char chr, char row, char col){
+        if(!row){
+                slcd_cmd(0x80|col); //envia comando para posicionar o cursor na posição correta
+                slcd_write(chr);
+        }else{
+                slcd_cmd(0xc0|col); //envia comando para posicionar o cursor na posição correta
+                slcd_write(chr);    
+        }
+}
+
+
+// --------------------------------------------------------------------------------------
+// -----Write number-------
+// escreve um numero na posição determinada
+void slcd_number(unsigned long num, char row, char col){
+        
+        short no_zero = 0;
+        char mil, dez, dem, cen, uni;  
+        
+        
+        dem = (char) (num/10000);
+        mil = (char) (num%10000/1000);
+        cen = (char) (num%1000/100);
+        dez = (char) (num%100/10);
+        uni = (char) (num%10);
+
+        if(!dem && !no_zero){
+                slcd_wr_po(' ', row, col);
+        }else{
+                slcd_write(dem+0x30, row, col);
+                no_zero = 1;
+        }
+        if(!mil && !no_zero){
+                slcd_write(' ');
+        }else{
+                slcd_write(mil+0x30);
+                no_zero = 1;
+        }
+        if(!cen && !no_zero){
+                slcd_write(' ');
+        }else{
+                slcd_write(ced+0x30);
+                no_zero = 1;
+
+        }
+        if(!dez && !no_zero){
+                slcd_write(' ');
+        }else{
+                slcd_write(dez+0x30);
+                no_zero = 1;
+
+        }       
+        slcd_write(uni+0x30);
+} 
+
+// --------------------------------------------------------------------------------------
+// -----LED ON-------
+// liga o led
+
+void sled_on(void){
+        sled = 1;
+        slcd_cmd(0x06);
+
+}
+
+// --------------------------------------------------------------------------------------
+// -----LED OFF-------
+// desliga o led
+
+void sled_off(void){
+        sled = 0;
+        slcd_cmd(0x06);
+}
+
+// --------------------------------------------------------------------------------------
+// -----backlight ON-------
+// liga o backlight
+
+void sbacklight_on(void){
+        sbli = 1;
+        slcd_cmd(0x06);
+}
+
+// --------------------------------------------------------------------------------------
+// -----backlight OFF-------
+// desliga o backlight
+
+void sbacklight_off(void){
+        sbli = 0;
+        slcd_cmd(0x06);
+}
+
+// --------------------------------------------------------------------------------------
+// -----Keypad-------
+// le o kaypad
+
+char keypad(volatile unsigned char *port){
+
+        static unsigned char flags= 0x00; 
+
+        if(!(*port&BT1))       // botao 1 pressionado? 
+                flags |= (1<<1); // se sim seta flag bit 1
+        
+
+        if ((*port&BT1) && (flags&(1<<1))){  // botao 1 solto e flag 1 setada? sim
+                flags  &= ~(1<<1);           // limpa flag 1 
+                __ms(50);               //anti bouncing
+                return 1;               //  retorna 1 indicando botao 1 presionado 
+        }
+        
+        if(!(*port&BT2))       // botao 2 pressionado? 
+                flags |= (1<<2); // se sim seta flag bit 2
+        
+
+        if ((*port&BT2) && (flags&(1<<2))){  // botao 2 solto e flag 2 setada? sim
+                flags  &= ~(1<<2);           // limpa flag 2
+                __ms(50);               //anti bouncing
+                return 2;               //  retorna 2 indicando botao 2 presionado 
+        }
+        if(!(*port&BT3))       // botao 3 pressionado? 
+                flags |= (1<<3); // se sim seta flag bit 3
+
+
+        if ((*port&BT3) && (flags&(1<<3))){  // botao 3 solto e flag 3 setada? sim
+                flags  &= ~(1<<3);           // limpa flag 3 
+                __ms(50);               //anti bouncing
+                return 3;               //  retorna 3 indicando botao 3 presionado 
+        }
+        if(!(*port&BT4))       // botao 4 pressionado? 
+                flags |= (1<<4); // se sim seta flag bit 4
+        
+
+        if ((*port&BT4) && (flags&(1<<4))){  // botao 4 solto e flag 4 setada? sim
+                flags  &= ~(1<<4);           // limpa flag 4
+                __ms(50);               //anti bouncing
+                return 4;               //  retorna 4 indicando botao 4 presionado 
+        }
+        return 0;
+}
+
+
+
+
 
 //-------------------------------End----------------------------------------
