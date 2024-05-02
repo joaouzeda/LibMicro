@@ -30,35 +30,35 @@ unsigned long test = 12345;
 
 void main(){
 
+    char tests = 0;
+
     CMCON = 0X07;
     TRISB = 0XF8;
 
     slc_init();
+    slcd_opt(1, 1, 1);
+
     slcd_clear();
 
     sled_on();
     sbacklight_on();
 
-    slcd_wr_po('H', 0, 0);
-    slcd_write('e');
-    slcd_write('l');
-    slcd_write('l');
-    slcd_write('o');
+    slcd_wr_po('U', 0, 4);
+    slcd_write('Z');
+    slcd_write('E');
+    slcd_write('A');
     slcd_write('!');
 
-    delay_ms(2000);
+    delay_ms(1000);
 
-    sled_off();
-    sbacklight_off();
-
-    slcd_number(test, 1, 0);    
+    select(&PORTB, &tests);
 
     while (1){
-        test++;
-        __ms(500);
-        slcd_number(test, 1, 0);
-
-        keypad_test();
+        if(tests)
+            number_test();
+        else     
+            keypad_test();
+            
     }
 
 }
@@ -91,9 +91,40 @@ void keypad_test(void){
     }
 }
 
+// --------------------------------------------------------------------------------------
+// -----Number test -------
+//  testa a escrita do display de um numero inteiro
+
+void number_test(void){
+    static unsigned val = 0;
+    
+    slcd_number(val++, 1, 6);
+    delay_ms(100);
+
+}
+
+// --------------------------------------------------------------------------------------
+// ----- -------
+//  testa a escrita do display de um numero inteiro
+
+void select(volatile unsigned char *port, char *test_port){
+
+    if(*port&BT1){
+        slcd_wr_po('K', 1, 4);
+        slcd_write('B');
+        slcd_write(':');
+        *test_port = 0;
+    }else{
+        slcd_wr_po('N', 1, 4);
+        slcd_write(':');
+        *test_port = 1;
+    }
+
+    (*port&BT2) ? sled_off() : sled_on();
+    (*port&BT3) ? sbacklight_off() : sbacklight_on();
 
 
-
+}
 
 
 
