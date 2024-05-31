@@ -8,32 +8,48 @@
     auxiliarty led
     4 buttons 
 
-    compiler: VsCode 1.88.1
-     MCU: ESP32
-    Author: João  G. Uzêda
-    date: 2024, March
+    compiler:   VsCode 1.88.1
+    MCU:        ESP32 DEVKITV1
+    Author:     João  G. Uzêda
+    date:       2024, March
 
 -----------------------------------------------------------------------------------------*/
 
 // --------------------------------------------------------------------------------------
 // -----Libraries-------
-#include "ihm_wr.h"
+#include <stdio.h>
+#include <stdbool.h>
+#include <unistd.h>
+#include "driver/gpio.h"
+#include "esp_system.h"
+#include "ihm_uzeda.h"
+
 
 // --------------------------------------------------------------------------------------
 // -----Functions prototypes-------
 void keypad_test(void); //imprime o valor da tecla pressionada 
-
+void select(volatile unsigned char *port, char *test_port);
 
 //-------------------------Main Function------------------------------------
 
 unsigned long test = 12345;
 
-void main(){
+void app_main(void){
 
     char tests = 0;
 
-    CMCON = 0X07;
-    TRISB = 0XF8;
+    gpio__set_direction(CLT, GPIO_MODE_OUTPUT);
+    gpio__set_direction(DAT, GPIO_MODE_OUTPUT);
+    gpio__set_direction(LAT, GPIO_MODE_OUTPUT);
+
+    gpio__set_direction(BT1, GPIO_MODE_INPUT);
+    gpio__set_direction(BT2, GPIO_MODE_INPUT);
+    gpio__set_direction(BT3, GPIO_MODE_INPUT);
+    gpio__set_direction(BT4, GPIO_MODE_INPUT);
+
+    gpio_set_level(CLK, 0);
+    gpio_set_level(DAT, 0);
+    gpio_set_level(LAT, 0);
 
     slc_init();
     slcd_opt(1, 1, 1);
@@ -49,7 +65,7 @@ void main(){
     slcd_write('A');
     slcd_write('!');
 
-    delay_ms(1000);
+    usleep(100000);
 
     select(&PORTB, &tests);
 
@@ -99,7 +115,7 @@ void number_test(void){
     static unsigned val = 0;
     
     slcd_number(val++, 1, 6);
-    delay_ms(100);
+    usleep(100000);
 
 }
 
@@ -109,7 +125,7 @@ void number_test(void){
 
 void select(volatile unsigned char *port, char *test_port){
 
-    if(*port&BT1){
+    if(gpio_get_level(BT1)){
         slcd_wr_po('K', 1, 4);
         slcd_write('B');
         slcd_write(':');
@@ -120,8 +136,8 @@ void select(volatile unsigned char *port, char *test_port){
         *test_port = 1;
     }
 
-    (*port&BT2) ? sled_off() : sled_on();
-    (*port&BT3) ? sbacklight_off() : sbacklight_on();
+    (gpio_get_level(BT2)) ? sled_off() : sled_on();
+    (gpio_get_level(BT3)) ? sbacklight_off() : sbacklight_on();
 
 
 }

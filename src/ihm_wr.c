@@ -7,18 +7,17 @@
         auxiliarty led
         4 buttons 
 
-        compiler: VsCode 1.88.1
-        MCU: ESP32
-
-        Author: João  G. Uzêda
-        date: 2024, March
+        compiler:   VsCode 1.88.1
+        MCU:        ESP32
+        Author:     João  G. Uzêda
+        date:       2024, March
 
 -----------------------------------------------------------------------------------------*/
 
 // --------------------------------------------------------------------------------------
 
 // -----Libraries-------
-#include "ihm_wr.h"
+#include "ihm_uzeda.h"
 
 
 // --------------------------------------------------------------------------------------
@@ -105,19 +104,19 @@ void shift_reg(unsigned char byte_val){                         // 00000110
         register int i;                                         // 00000001 
         for(i = 7; i >= 0; i--){
                 (byte_val >> i)&0x01 ?
-                        (PORTMCU |= DAT): 
-                        (PORTMCU &= ~DAT);
-                        __ms(100);
-                        PORTMCU |= CLK;
-                        __ms(1);
-                        PORTMCU &= ~CLK; 
-
+                        (gpio_set_level(DAT, 1));
+                        (gpio_set_level(DAT, 0));
+                __us(100);
+                gpio_set_level(CLK, 1);
+                __ms(1);
+                gpio_set_level(CLK, 0);
+                __us(100);
         }
 
-        PORTMCU &= ~DAT;
-        PORTMCU |= LAT;
+        gpio_set_level(DAT, 1);
+        gpio_set_level(LAT, 1);
         __ms(1);
-        PORTMCU &= ~LAT;
+        gpio_set_level(LAT, 0);
 }
 
 // --------------------------------------------------------------------------------------
@@ -244,39 +243,39 @@ char keypad(volatile unsigned char *port){
 
         static unsigned char flags= 0x00; 
 
-        if(!(*port&BT1))       // botao 1 pressionado? 
+        if(!(gpio_get_level(BT1)))       // botao 1 pressionado? 
                 flags |= (1<<1); // se sim seta flag bit 1
         
 
-        if ((*port&BT1) && (flags&(1<<1))){  // botao 1 solto e flag 1 setada? sim
+        if ((gpio_get_level(BT1)) && (flags&(1<<1))){  // botao 1 solto e flag 1 setada? sim
                 flags  &= ~(1<<1);           // limpa flag 1 
                 __ms(50);               //anti bouncing
                 return 1;               //  retorna 1 indicando botao 1 presionado 
         }
         
-        if(!(*port&BT2))       // botao 2 pressionado? 
+        if(!(gpio_get_level(BT2)))       // botao 2 pressionado? 
                 flags |= (1<<2); // se sim seta flag bit 2
         
 
-        if ((*port&BT2) && (flags&(1<<2))){  // botao 2 solto e flag 2 setada? sim
+        if ((gpio_get_level(BT2)) && (flags&(1<<2))){  // botao 2 solto e flag 2 setada? sim
                 flags  &= ~(1<<2);           // limpa flag 2
                 __ms(50);               //anti bouncing
                 return 2;               //  retorna 2 indicando botao 2 presionado 
         }
-        if(!(*port&BT3))       // botao 3 pressionado? 
+        if(!(gpio_get_level(BT3)))       // botao 3 pressionado? 
                 flags |= (1<<3); // se sim seta flag bit 3
 
 
-        if ((*port&BT3) && (flags&(1<<3))){  // botao 3 solto e flag 3 setada? sim
+        if ((gpio_get_level(BT3)) && (flags&(1<<3))){  // botao 3 solto e flag 3 setada? sim
                 flags  &= ~(1<<3);           // limpa flag 3 
                 __ms(50);               //anti bouncing
                 return 3;               //  retorna 3 indicando botao 3 presionado 
         }
-        if(!(*port&BT4))       // botao 4 pressionado? 
+        if(!(gpio_get_level(BT4)))       // botao 4 pressionado? 
                 flags |= (1<<4); // se sim seta flag bit 4
         
 
-        if ((*port&BT4) && (flags&(1<<4))){  // botao 4 solto e flag 4 setada? sim
+        if ((gpio_get_level(BT4)) && (flags&(1<<4))){  // botao 4 solto e flag 4 setada? sim
                 flags  &= ~(1<<4);           // limpa flag 4
                 __ms(50);               //anti bouncing
                 return 4;               //  retorna 4 indicando botao 4 presionado 
@@ -285,6 +284,18 @@ char keypad(volatile unsigned char *port){
 }
 
 
+// --------------------------------------------------------------------------------------
+// -----ms  -------
+// escreve o chr na posicão atual do lcd
+
+void __ms(unsigned long t){
+        register unsigned long i;
+
+        for(i = 0; i < t; i++)
+                usleep(1000);
+}
+
+// --------------------------------------------------------------------------
 
 
 
