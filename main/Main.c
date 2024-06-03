@@ -62,6 +62,7 @@ void app_main(void){
     slcd_wr_po('U', 0, 4);
     slcd_write('Z');
     slcd_write('E');
+    slcd_write('D');
     slcd_write('A');
     slcd_write('!');
 
